@@ -1,3 +1,6 @@
+/* The code for pagerank is adapted mainly from https://github.com/wangzuo/pagerank-hadoop.
+ * I made some modifications to meet our own needs.
+*/
 import java.io.IOException;
 import java.util.*;
 import java.lang.StringBuffer;
@@ -72,7 +75,7 @@ public class computePhase extends Configured implements Tool{
 		conf.setOutputValueClass(Text.class);
 
 		conf.setMapperClass(Map.class);
-		//conf.setCombinerClass(Reduce.class);
+
 		conf.setReducerClass(Reduce.class);
 
 		conf.setInputFormat(TextInputFormat.class);

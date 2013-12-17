@@ -1,9 +1,10 @@
+/* This distribution.class is mainly adapted from the hama pagerank example. 
+ * I changed some erroneous parts in the example to let it run properly */
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
@@ -11,7 +12,6 @@ import org.apache.hama.HamaConfiguration;
 import org.apache.hama.bsp.HashPartitioner;
 import org.apache.hama.bsp.SequenceFileInputFormat;
 import org.apache.hama.bsp.TextArrayWritable;
-import org.apache.hama.bsp.TextInputFormat;
 import org.apache.hama.bsp.TextOutputFormat;
 import org.apache.hama.graph.AverageAggregator;
 import org.apache.hama.graph.Edge;
@@ -19,9 +19,6 @@ import org.apache.hama.graph.GraphJob;
 import org.apache.hama.graph.Vertex;
 import org.apache.hama.graph.VertexInputReader;
 
-/**
- * Real pagerank with dangling node contribution.
- */
 public class PageRank {
 
   public static class PageRankVertex extends
@@ -51,7 +48,6 @@ public class PageRank {
 
     @Override
     public void compute(Iterable<DoubleWritable> messages) throws IOException {
-      // initialize this vertex to 1 / count of global vertices in this graph
       if (this.getSuperstepCount() == 0) {
         this.setValue(new DoubleWritable(1.0 / this.getNumVertices()));
       } else if (this.getSuperstepCount() >= 1) {
@@ -63,14 +59,12 @@ public class PageRank {
         this.setValue(new DoubleWritable(alpha + (sum * DAMPING_FACTOR)));
       }
 
-      // if we have not reached our global error yet, then proceed.
       DoubleWritable globalError = getLastAggregatedValue(0);
       if (globalError != null && this.getSuperstepCount() >= ITERATION ) {
         voteToHalt();
         return;
       }
 
-      // in each superstep we are going to send a new rank to our neighbours
       sendMessageToNeighbors(new DoubleWritable(this.getValue().get()
           / this.getEdges().size()));
     }
@@ -104,11 +98,9 @@ public class PageRank {
     pageJob.setInputPath(new Path(args[0]));
     pageJob.setOutputPath(new Path(args[1]));
 
-    // set the defaults
     pageJob.setMaxIteration(30);
     pageJob.set("hama.pagerank.alpha", "0.85");
-    // reference vertices to itself, because we don't have a dangling node
-    // contribution here
+
     pageJob.set("hama.graph.self.ref", "true");
     pageJob.set("hama.graph.max.convergence.error", "0.001");
     
@@ -118,10 +110,8 @@ public class PageRank {
       pageJob.setNumBspTask(Integer.parseInt(args[3]));
     }
 
-    // error
     pageJob.setAggregatorClass(AverageAggregator.class);
 
-    // Vertex reader
     pageJob.setVertexInputReaderClass(PagerankSeqReader.class);
 
     pageJob.setVertexIDClass(Text.class);

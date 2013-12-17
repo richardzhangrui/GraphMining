@@ -1,3 +1,4 @@
+-- We hard code the number of nodes in graphs, so we give an example of 100 nodes in sample code.
 -- change raw data to scidb format file <src, des>
 csv2scidb -p NNN -d ' ' <./new.txt> ./new1.scidb
 
@@ -8,7 +9,7 @@ create array edge<src: uint64, des: uint64, e:uint64>[i=0:99, 100, 0];
 load edge from './new1.scidb'
 
 -- create array of outdegree for each source node
-create Array outdegree<out: uint64 null default null>[src=0:100,100,0];
+create Array outdegree<out: uint64 null default null>[src=0:99,100,0];
 
 -- redimension array edge to array outdegree
 redimension_store(edge, outdegree, count(*) as out);

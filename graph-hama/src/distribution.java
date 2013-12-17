@@ -1,3 +1,5 @@
+/* This distribution.class is mainly adapted from the hama pagerank example. 
+ * I changed the main logic to compute the degree distribution */
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -18,12 +20,9 @@ import org.apache.hama.graph.GraphJob;
 import org.apache.hama.graph.Vertex;
 import org.apache.hama.graph.VertexInputReader;
 
-/**
- * Real pagerank with dangling node contribution.
- */
 public class distribution {
 
-  public static class PageRankVertex extends
+  public static class vertex extends
       Vertex<Text, NullWritable, DoubleWritable> {
 
     @Override
@@ -52,7 +51,7 @@ public class distribution {
 
   }
 
-  public static class PagerankSeqReader
+  public static class SeqReader
       extends
       VertexInputReader<Text, TextArrayWritable, Text, NullWritable, DoubleWritable> {
     @Override
@@ -75,22 +74,19 @@ public class distribution {
     
     pageJob.setJar("graph.jar");
     
-    pageJob.setVertexClass(PageRankVertex.class);
+    pageJob.setVertexClass(vertex.class);
     pageJob.setInputPath(new Path(args[0]));
     pageJob.setOutputPath(new Path(args[1]));
 
-    // set the defaults
     pageJob.setMaxIteration(30);
     
     if (args.length == 3) {
       pageJob.setNumBspTask(Integer.parseInt(args[2]));
     }
 
-    // error
     pageJob.setAggregatorClass(AverageAggregator.class);
 
-    // Vertex reader
-    pageJob.setVertexInputReaderClass(PagerankSeqReader.class);
+    pageJob.setVertexInputReaderClass(SeqReader.class);
 
     pageJob.setVertexIDClass(Text.class);
     pageJob.setVertexValueClass(DoubleWritable.class);

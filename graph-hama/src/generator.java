@@ -1,3 +1,5 @@
+/* This generator.class is mainly adapted from the hama symmetric Matrix example. 
+ * I changed the main logic to transform the textInputFormat to SequenceFileFormat */
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,48 +23,29 @@ import org.apache.hama.bsp.sync.SyncException;
 
 public class generator {
 
-  private static String SIZE_OF_MATRIX = "size.of.matrix";
-//  private static String DENSITY = "density.of.matrix";
+  private static String SIZE = "size";
 
-  public static class SymmetricMatrixGenBSP extends
+  public static class genBSP extends
       BSP<LongWritable, Text, Text, TextArrayWritable, Text> {
 
     private Configuration conf;
     private int sizeN;
     private String separator;
-//    private int density;
     private Map<Integer, HashSet<Integer>> list = new HashMap<Integer, HashSet<Integer>>();
 
     @Override
     public void setup(
         BSPPeer<LongWritable, Text, Text, TextArrayWritable, Text> peer) {
       this.conf = peer.getConfiguration();
-      sizeN = conf.getInt(SIZE_OF_MATRIX, 10);
+      sizeN = conf.getInt(SIZE, 10);
       separator = conf.get("SEPARATOR");
-//      density = conf.getInt(DENSITY, 1);
     }
 
     @Override
     public void bsp(
         BSPPeer<LongWritable, Text, Text, TextArrayWritable, Text> peer)
         throws IOException, SyncException, InterruptedException {
-      int interval = sizeN / peer.getNumPeers();
-      int startID = 1 + peer.getPeerIndex() * interval;
-      int endID;
-      if (peer.getPeerIndex() == peer.getNumPeers() - 1)
-        endID = sizeN;
-      else
-        endID = startID + interval;
-      
-//      for(int i = startID; i < endID; i++) {
-//    	  list.put(i, new HashSet<Integer>());
-//    	  list.get(i).add(0);
-//      }
-//      
-//      if (peer.getPeerIndex() == 0) {
-//    	  list.put(0, new HashSet<Integer>());
-//    	  list.get(0).add(0);
-//      }
+      int interval = sizeN / peer.getNumPeers();      
       
       LongWritable key = new LongWritable(1);
       Text value = new Text("");
@@ -101,8 +84,6 @@ public class generator {
     	  
       }
       
-
-      // Synchronize the upper and lower
       peer.sync();
       Text received;
       while ((received = peer.getCurrentMessage()) != null) {
@@ -144,19 +125,16 @@ public class generator {
       System.exit(1);
     }
 
-    // BSP job configuration
     HamaConfiguration conf = new HamaConfiguration();
 
-    conf.setInt(SIZE_OF_MATRIX, Integer.parseInt(args[0]));
-//    conf.setInt(DENSITY, Integer.parseInt(args[1]));
+    conf.setInt(SIZE, Integer.parseInt(args[0]));
     conf.set("SEPARATOR", args[1]);
 
     BSPJob bsp = new BSPJob(conf);
    
-    // Set the job name
     bsp.setJar("graph.jar");
     bsp.setJobName("Graph Generator");
-    bsp.setBspClass(SymmetricMatrixGenBSP.class);
+    bsp.setBspClass(genBSP.class);
     bsp.setInputFormat(TextInputFormat.class);
     bsp.setInputKeyClass(LongWritable.class);
     bsp.setInputValueClass(Text.class);

@@ -1,3 +1,5 @@
+/* This distribution.class is mainly adapted from the hama pagerank example. 
+ * I changed the main logic to compute the connected component */
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -18,12 +20,10 @@ import org.apache.hama.graph.GraphJob;
 import org.apache.hama.graph.Vertex;
 import org.apache.hama.graph.VertexInputReader;
 
-/**
- * Real pagerank with dangling node contribution.
- */
+
 public class connected {
 
-  public static class PageRankVertex extends
+  public static class vertex extends
       Vertex<Text, NullWritable, DoubleWritable> {
 
     static int ITERATION = 7;
@@ -39,7 +39,6 @@ public class connected {
 
     @Override
     public void compute(Iterable<DoubleWritable> messages) throws IOException {
-      // initialize this vertex to 1 / count of global vertices in this graph
       if (this.getSuperstepCount() == 0) {
         this.setValue(new DoubleWritable(Double.parseDouble(this.getVertexID().toString())));
       } else if (this.getSuperstepCount() >= 1) {
@@ -57,13 +56,12 @@ public class connected {
         return;
       }
 
-      // in each superstep we are going to send a new rank to our neighbours
       sendMessageToNeighbors(this.getValue());
     }
 
   }
 
-  public static class PagerankSeqReader
+  public static class SeqReader
       extends
       VertexInputReader<Text, TextArrayWritable, Text, NullWritable, DoubleWritable> {
     @Override
@@ -84,27 +82,21 @@ public class connected {
     GraphJob pageJob = new GraphJob(conf, PageRank.class);
     pageJob.setJobName("Pagerank");
 
-    pageJob.setVertexClass(PageRankVertex.class);
+    pageJob.setVertexClass(vertex.class);
     pageJob.setInputPath(new Path(args[0]));
     pageJob.setOutputPath(new Path(args[1]));
 
     pageJob.setJar("graph.jar");
-    
-    // set the defaults
-    pageJob.setMaxIteration(30);
-    // reference vertices to itself, because we don't have a dangling node
-    // contribution here    
+       
     pageJob.set("iterations",args[2]);
     
     if (args.length == 4) {
       pageJob.setNumBspTask(Integer.parseInt(args[3]));
     }
 
-    // error
     pageJob.setAggregatorClass(AverageAggregator.class);
 
-    // Vertex reader
-    pageJob.setVertexInputReaderClass(PagerankSeqReader.class);
+    pageJob.setVertexInputReaderClass(SeqReader.class);
 
     pageJob.setVertexIDClass(Text.class);
     pageJob.setVertexValueClass(DoubleWritable.class);

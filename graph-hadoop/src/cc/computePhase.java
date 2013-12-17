@@ -1,3 +1,6 @@
+/* The code is adapted mainly from https://github.com/wangzuo/pagerank-hadoop.
+ * I changed the main logic to compute the weakly connected component.
+*/
 import java.io.IOException;
 import java.util.*;
 import java.lang.StringBuffer;
@@ -81,7 +84,7 @@ public class computePhase extends Configured implements Tool{
 		conf.setOutputValueClass(Text.class);
 
 		conf.setMapperClass(Map.class);
-		//conf.setCombinerClass(Reduce.class);
+
 		conf.setReducerClass(Reduce.class);
 
 		conf.setInputFormat(TextInputFormat.class);

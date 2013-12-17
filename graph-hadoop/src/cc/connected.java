@@ -1,4 +1,6 @@
-
+/* The code is adapted mainly from https://github.com/wangzuo/pagerank-hadoop.
+ * I changed the main logic to compute the weakly connected component.
+*/
 
 import org.apache.hadoop.conf.*;
 import org.apache.hadoop.util.*;

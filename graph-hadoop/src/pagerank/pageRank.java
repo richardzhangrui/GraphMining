@@ -1,3 +1,6 @@
+/* The code for pagerank is adapted mainly from https://github.com/wangzuo/pagerank-hadoop.
+ * I made some modifications to meet our own needs.
+*/
 import java.io.IOException;
 import java.util.*;
 import java.lang.StringBuffer;
